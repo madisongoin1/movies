@@ -1,3 +1,4 @@
+
 ---
 title: "Movie Analysis"
 author: "Madison Goin"
@@ -30,5 +31,74 @@ movies |>
     x = "Tomatometer Score",
     y = "Count"
   )
+```
+
+```{r}
+movies_gap <- movies_clean |>
+  filter(tomatoMeter != 0, audienceScore != 0) |>
+  mutate(gap = tomatoMeter - audienceScore)
+
+movies_summary <- movies_gap |>
+  group_by(genre) |>
+  summarise(
+    mean_gap = mean(gap, na.rm = TRUE),
+    film_count = n()
+  ) |>
+  filter(film_count >= 100) |>
+  arrange(mean_gap)
+```
+
+```{r}
+movies_summary |>
+  ggplot(aes(x = mean_gap, y = fct_reorder(genre, mean_gap, .desc = TRUE))) +
+  geom_col() +
+  geom_vline(xintercept = 0) +
+  labs(
+    title = "Average Critic-Audience Score Gap by Genre",
+    subtitle = "Negative gaps favor audiences; positive gaps favor critics",
+    x = "Average Tomatometer Score minus Audience Score",
+    y = "Genre"
+  )
+```
+
+```{r}
+spiderman <- movies |>
+  filter(title %in% c(
+    "Spider-Man",
+    "Spider-Man 2",
+    "Spider-Man 3",
+    "The Amazing Spider-Man",
+    "The Amazing Spider-Man 2",
+    "Spider-Man: Homecoming",
+    "Spider-Man: Far From Home",
+    "Spider-Man: No Way Home"
+  )) |>
+  arrange(releaseDateTheaters)
+
+spiderman |>
+  select(title, releaseDateTheaters, tomatoMeter, audienceScore) |>
+  pivot_longer(
+    cols = c(tomatoMeter, audienceScore),
+    names_to = "score_type",
+    values_to = "score"
+  ) |>
+  mutate(
+    title = factor(title, levels = unique(title)),
+    score_type = recode(
+      score_type,
+      tomatoMeter = "Tomatometer",
+      audienceScore = "Audience Score"
+    )
+  ) |>
+  ggplot(aes(x = title, y = score, color = score_type, group = score_type)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Audiences Favored Four of the Five Films After Spider-Man 3",
+    x = "Film (in release order)",
+    y = "Score",
+    color = "Score type"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
