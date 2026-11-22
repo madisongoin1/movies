@@ -11,7 +11,24 @@ execute:
 library(tidyverse)
 
 movies <- read_csv("data/movies.csv")
+```
 
-movies
+```{r}
+#| cache: true
+
+movies_clean <- movies |>
+  separate_rows(genre, sep = ", ")
+```
+
+```{r}
+movies |>
+  ggplot(aes(x = tomatoMeter)) +
+  geom_histogram() +
+  labs(
+    title = "Distribution of Tomatometer Scores",
+    subtitle = paste("Number of films:", sum(!is.na(movies$tomatoMeter))),
+    x = "Tomatometer Score",
+    y = "Count"
+  )
 ```
 
